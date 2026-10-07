@@ -137,7 +137,7 @@ def calculer_score(main):
         # remember it starts counting from 0, so 2 is actually the third element 
 
         # Si c'est un As
-        if isinstance(valeur, list): #If this card has a list as its value, then it must be an As, so handle it differently
+        if isinstance(valeur, list): #if this card has a list as its value, then it must be an As, so handle it differently
 
             # On commence par considérer l'As comme 11
             total += 11
@@ -146,8 +146,7 @@ def calculer_score(main):
         else:
             total += valeur
 
-    # Si on dépasse 21,
-    # un As passe de 11 à 1
+    # Si on dépasse 21, un As passe de 11 à 1
     while total > 21 and nombre_as > 0:
 
         total -= 10
@@ -229,13 +228,13 @@ while jeu_en_cours:
 
         if evenement.type == pygame.KEYDOWN:
 
-            if evenement.key == pygame.K_d:
+            if evenement.key == pygame.K_d:#when D pressed then
                 action = "distribuer"
 
-            elif evenement.key == pygame.K_t:
+            elif evenement.key == pygame.K_t:#when T pressed then
                 action = "tirer"
 
-            elif evenement.key == pygame.K_r:
+            elif evenement.key == pygame.K_r: #when R pressed then
                 action = "rester"
 
 
@@ -634,4 +633,3 @@ while jeu_en_cours:
 
 
 pygame.quit()
-
