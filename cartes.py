@@ -80,22 +80,30 @@ for valeur in [valeur1,valeur2]:
                 total+= valeur
 print("carte1:",carte1)
 print("carte2 :",carte2)
-print("total",total)  
-choix = input("Appuie sur t pour tirer une autre carte ou n pour laisser :")
-if choix == "t":
-   nouvelle_carte= cartes.pop()
-   valeur3 =nouvelle_carte[2]
-   print("nouvelle carte:",nouvelle_carte) 
-   if isinstance(valeur ,list):
-      choix_as= input("ton as vaut 1 ou 11").strip()
-      while choix not in["1" ,"11"] :
-        choix_as = input("choisis uniquement 1 ou 11").strip()
-      if choix_as== "1":
-       total+=1 
+print("total",total)
+while True :
+  choix = input("Appuie sur t pour tirer une autre carte ou n pour laisser :")
+  if choix == "t":
+      nouvelle_carte= cartes.pop()
+      valeur3 =nouvelle_carte[2]
+      print("nouvelle carte:",nouvelle_carte) 
+      if isinstance(valeur3 ,list):
+         choix_as= input("ton as vaut 1 ou 11").strip()
+         while choix_as not in["1" ,"11"] :
+          choix_as = input("choisis uniquement 1 ou 11").strip()
+          if choix_as== "1":
+             total+=1 
+          else:
+            total+=11
       else:
-           total+=11
-   else:
            total += valeur3
            print("ton nouveau total est :",total)
-elif choix == "n" :
+      if total>21:
+       print ("tu as depasse 21 !! perdue tu est nul bahahahhaha")
+       break
+  elif choix == "n" :
     print("ton total reste :",total )
+    break
+  else :
+      print("appuie sur t pour tirer une autre carte ou n pour laisser")
+      
