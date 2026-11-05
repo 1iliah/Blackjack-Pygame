@@ -1,6 +1,7 @@
 import pygame
-import random
 import os
+
+from cartes import creer_paquet
 
 from jetons import peut_jouer
 from jetons import mettre_a_jour_jetons
@@ -41,88 +42,8 @@ police_info = pygame.font.Font(None, 22)
 
 
 # --------------------------------------------------
-# CARTES RAFIK
-# --------------------------------------------------
-
-cartes = [
-
-    # Piques
-    ("As", "Pique", [1, 11]),
-    ("2", "Pique", 2),
-    ("3", "Pique", 3),
-    ("4", "Pique", 4),
-    ("5", "Pique", 5),
-    ("6", "Pique", 6),
-    ("7", "Pique", 7),
-    ("8", "Pique", 8),
-    ("9", "Pique", 9),
-    ("10", "Pique", 10),
-    ("valet", "Pique", 10),
-    ("dame", "Pique", 10),
-    ("roi", "Pique", 10),
-
-    # Coeurs
-    ("As", "coeur", [1, 11]),
-    ("2", "coeur", 2),
-    ("3", "coeur", 3),
-    ("4", "coeur", 4),
-    ("5", "coeur", 5),
-    ("6", "coeur", 6),
-    ("7", "coeur", 7),
-    ("8", "coeur", 8),
-    ("9", "coeur", 9),
-    ("10", "coeur", 10),
-    ("valet", "coeur", 10),
-    ("dame", "coeur", 10),
-    ("roi", "coeur", 10),
-
-    # Carreaux
-    ("As", "carreau", [1, 11]),
-    ("2", "carreau", 2),
-    ("3", "carreau", 3),
-    ("4", "carreau", 4),
-    ("5", "carreau", 5),
-    ("6", "carreau", 6),
-    ("7", "carreau", 7),
-    ("8", "carreau", 8),
-    ("9", "carreau", 9),
-    ("10", "carreau", 10),
-    ("valet", "carreau", 10),
-    ("dame", "carreau", 10),
-    ("roi", "carreau", 10),
-
-    # Trèfles
-    ("As", "Trèfle", [1, 11]),
-    ("2", "Trèfle", 2),
-    ("3", "Trèfle", 3),
-    ("4", "Trèfle", 4),
-    ("5", "Trèfle", 5),
-    ("6", "Trèfle", 6),
-    ("7", "Trèfle", 7),
-    ("8", "Trèfle", 8),
-    ("9", "Trèfle", 9),
-    ("10", "Trèfle", 10),
-    ("valet", "Trèfle", 10),
-    ("dame", "Trèfle", 10),
-    ("roi", "Trèfle", 10)
-]
-
-
-# --------------------------------------------------
 # FONCTIONS DU JEU
 # --------------------------------------------------
-
-def creer_paquet():
-
-    # On copie les 52 cartes pour ne pas modifier
-    # la liste originale de Rafik.
-
-    paquet = cartes.copy()
-
-    random.shuffle(paquet)
-
-    return paquet
-
 
 def calculer_score(main):
 
@@ -133,10 +54,10 @@ def calculer_score(main):
 
         valeur = carte[2]
 
-        # L'As est représenté par [1, 11]
+        # Si c'est un As
         if isinstance(valeur, list):
 
-            # On commence par compter l'As comme 11
+            # On commence par considérer l'As comme 11
             total += 11
             nombre_as += 1
 
@@ -144,8 +65,8 @@ def calculer_score(main):
 
             total += valeur
 
-    # Si le score dépasse 21,
-    # on transforme un As de 11 en 1.
+    # Si on dépasse 21,
+    # un As passe de 11 à 1
 
     while total > 21 and nombre_as > 0:
 
@@ -226,9 +147,6 @@ def convertir_symbole_image(symbole):
         return symbole
 
 
-# Dictionnaire permettant de ne pas recharger
-# plusieurs fois la même image.
-
 images_cartes = {}
 
 
@@ -248,6 +166,9 @@ def charger_image_carte(carte):
         + symbole
         + ".png"
     )
+
+    # Si l'image a déjà été chargée,
+    # on évite de la recharger
 
     if nom_image in images_cartes:
 
@@ -475,8 +396,8 @@ while jeu_en_cours:
 
     if action == "distribuer":
 
-        # On vérifie d'abord si le joueur
-        # possède encore assez de jetons.
+        # On vérifie si le joueur possède
+        # encore assez de jetons
 
         if not peut_jouer(jetons):
 
@@ -484,9 +405,6 @@ while jeu_en_cours:
                 "Vous avez perdu ! "
                 "Vous n'avez plus assez de jetons pour jouer."
             )
-
-        # On évite aussi de recommencer une nouvelle
-        # manche au milieu d'une partie.
 
         elif partie_en_cours:
 
@@ -496,7 +414,8 @@ while jeu_en_cours:
 
         else:
 
-            # Nouveau paquet
+            # Cette fonction vient maintenant
+            # directement de cartes.py
 
             paquet = creer_paquet()
 
@@ -584,17 +503,11 @@ while jeu_en_cours:
 
     elif action == "tirer" and partie_en_cours:
 
-        # Prendre une carte dans le paquet
-
         nouvelle_carte = paquet.pop()
-
-        # L'ajouter à la main du joueur
 
         main_joueur.append(
             nouvelle_carte
         )
-
-        # Nouveau score
 
         score_joueur = calculer_score(
             main_joueur
@@ -608,9 +521,7 @@ while jeu_en_cours:
         )
 
 
-        # --------------------------------------------------
-        # JOUEUR DÉPASSE 21
-        # --------------------------------------------------
+        # Joueur dépasse 21
 
         if score_joueur > 21:
 
@@ -641,9 +552,7 @@ while jeu_en_cours:
                 )
 
 
-        # --------------------------------------------------
-        # JOUEUR A 21
-        # --------------------------------------------------
+        # Joueur a exactement 21
 
         elif score_joueur == 21:
 
@@ -659,8 +568,6 @@ while jeu_en_cours:
 
     elif action == "rester" and partie_en_cours:
 
-        # Révéler les cartes du croupier
-
         croupier_visible = True
 
 
@@ -675,8 +582,6 @@ while jeu_en_cours:
             )
 
 
-        # Calcul final des scores
-
         score_joueur = calculer_score(
             main_joueur
         )
@@ -686,15 +591,11 @@ while jeu_en_cours:
         )
 
 
-        # Déterminer le résultat
-
         resultat, message_info = determiner_gagnant(
             score_joueur,
             score_croupier
         )
 
-
-        # Mettre à jour les jetons
 
         jetons = mettre_a_jour_jetons(
             jetons,
@@ -703,12 +604,8 @@ while jeu_en_cours:
         )
 
 
-        # La manche est terminée
-
         partie_en_cours = False
 
-
-        # Vérifier s'il reste assez de jetons
 
         if partie_terminee(jetons):
 
@@ -794,9 +691,6 @@ while jeu_en_cours:
 
         y = 125
 
-
-        # Deuxième carte cachée pendant
-        # le tour du joueur
 
         if i == 1 and not croupier_visible:
 
