@@ -292,7 +292,12 @@ bouton_rester = pygame.Rect(
     150,
     50
 )
-
+bouton_split = pygame.Rect(
+    775,
+    590,
+    150,
+    50
+)
 
 # --------------------------------------------------
 # VARIABLES DE LA PARTIE
@@ -303,7 +308,10 @@ paquet = []
 main_joueur = []
 
 main_croupier = []
-
+#variable pour le split
+mains_joueur = []
+mises_joueur = []
+main_actuelle = 0
 partie_en_cours = False
 
 croupier_visible = False
@@ -363,7 +371,9 @@ while jeu_en_cours:
             elif evenement.key == pygame.K_r:
 
                 action = "rester"
+            elif evenement.key == pygame.K_s:
 
+                action = "split"
 
         # --------------------------------------------------
         # SOURIS
@@ -388,6 +398,9 @@ while jeu_en_cours:
             ):
 
                 action = "rester"
+            elif bouton_split.collidepoint(evenement.pos):
+
+                action = "split"
 
 
     # --------------------------------------------------
@@ -900,7 +913,26 @@ while jeu_en_cours:
             center=bouton_rester.center
         )
     )
+# BOUTON SPLIT
 
+pygame.draw.rect(
+    fenetre,
+    GRIS,
+    bouton_split
+)
+
+texte_split = police_texte.render(
+    "SPLIT",
+    True,
+    NOIR
+)
+
+fenetre.blit(
+    texte_split,
+    texte_split.get_rect(
+        center=bouton_split.center
+    )
+)
 
     # --------------------------------------------------
     # ACTUALISER L'ÉCRAN
