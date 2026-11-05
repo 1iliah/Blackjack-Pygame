@@ -2,26 +2,27 @@ import pygame
 import random
 import os
 
+from jetons import peut_jouer
+from jetons import mettre_a_jour_jetons
+from jetons import partie_terminee
 
+
+# --------------------------------------------------
 # INITIALISATION DE PYGAME
+# --------------------------------------------------
 
 pygame.init()
-
-
-# Dimensions de la fenêtre
 
 LARGEUR = 1000
 HAUTEUR = 650
 
-
-# Création de la fenêtre et titre de la fenetre
-
 fenetre = pygame.display.set_mode((LARGEUR, HAUTEUR))
-
 pygame.display.set_caption("Table de Blackjack")
 
 
+# --------------------------------------------------
 # COULEURS
+# --------------------------------------------------
 
 VERT = (0, 120, 0)
 VERT_FONCE = (0, 80, 0)
@@ -30,21 +31,22 @@ NOIR = (0, 0, 0)
 GRIS = (200, 200, 200)
 
 
+# --------------------------------------------------
 # POLICES
+# --------------------------------------------------
 
 police_titre = pygame.font.Font(None, 40)
-
 police_texte = pygame.font.Font(None, 30)
-
 police_info = pygame.font.Font(None, 22)
 
 
+# --------------------------------------------------
 # CARTES RAFIK
+# --------------------------------------------------
 
 cartes = [
 
     # Piques
-
     ("As", "Pique", [1, 11]),
     ("2", "Pique", 2),
     ("3", "Pique", 3),
@@ -59,9 +61,7 @@ cartes = [
     ("dame", "Pique", 10),
     ("roi", "Pique", 10),
 
-
     # Coeurs
-
     ("As", "coeur", [1, 11]),
     ("2", "coeur", 2),
     ("3", "coeur", 3),
@@ -76,9 +76,7 @@ cartes = [
     ("dame", "coeur", 10),
     ("roi", "coeur", 10),
 
-
     # Carreaux
-
     ("As", "carreau", [1, 11]),
     ("2", "carreau", 2),
     ("3", "carreau", 3),
@@ -93,9 +91,7 @@ cartes = [
     ("dame", "carreau", 10),
     ("roi", "carreau", 10),
 
-
     # Trèfles
-
     ("As", "Trèfle", [1, 11]),
     ("2", "Trèfle", 2),
     ("3", "Trèfle", 3),
@@ -109,7 +105,6 @@ cartes = [
     ("valet", "Trèfle", 10),
     ("dame", "Trèfle", 10),
     ("roi", "Trèfle", 10)
-
 ]
 
 
@@ -117,194 +112,124 @@ cartes = [
 # FONCTIONS DU JEU
 # --------------------------------------------------
 
-
-"""
-Pendant la partie, on enlève des cartes du paquet avec pop().
-
-Si je n’avais pas fait de copie, je modifierais directement
-la liste originale de Rafik.
-
-Avec copy(), je peux utiliser et vider le paquet pendant une partie,
-puis recréer un nouveau paquet complet pour la partie suivante.
-"""
-
-
 def creer_paquet():
 
-    # Copie les 52 cartes de Rafik
+    # On copie les 52 cartes pour ne pas modifier
+    # la liste originale de Rafik.
 
     paquet = cartes.copy()
 
-
-    # On mélange le paquet
-
     random.shuffle(paquet)
 
-
     return paquet
-
-
-
-"""
-Add up all the cards.
-
-Count Aces as 11 first.
-
-If that makes the score go over 21,
-change an As from 11 to 1.
-"""
 
 
 def calculer_score(main):
 
     total = 0
-
     nombre_as = 0
-
 
     for carte in main:
 
         valeur = carte[2]
 
-
-        # Si c'est un As
-
+        # L'As est représenté par [1, 11]
         if isinstance(valeur, list):
 
-            # On commence par considérer l'As comme 11
-
+            # On commence par compter l'As comme 11
             total += 11
-
             nombre_as += 1
-
 
         else:
 
             total += valeur
 
-
-    # Si on dépasse 21,
-    # un As passe de 11 à 1
+    # Si le score dépasse 21,
+    # on transforme un As de 11 en 1.
 
     while total > 21 and nombre_as > 0:
 
         total -= 10
-
         nombre_as -= 1
 
-
     return total
-
 
 
 def determiner_gagnant(score_joueur, score_croupier):
 
     if score_joueur > 21:
 
-        return "Vous avez dépassé 21 : le croupier gagne !"
-
+        return (
+            "defaite",
+            "Vous avez dépassé 21 : le croupier gagne !"
+        )
 
     elif score_croupier > 21:
 
-        return "Le croupier dépasse 21 : vous gagnez !"
-
+        return (
+            "victoire",
+            "Le croupier dépasse 21 : vous gagnez !"
+        )
 
     elif score_joueur > score_croupier:
 
-        return "Vous gagnez !"
-
+        return (
+            "victoire",
+            "Vous gagnez !"
+        )
 
     elif score_croupier > score_joueur:
 
-        return "Le croupier gagne !"
-
+        return (
+            "defaite",
+            "Le croupier gagne !"
+        )
 
     else:
 
-        return "Égalité !"
-
+        return (
+            "egalite",
+            "Égalité !"
+        )
 
 
 # --------------------------------------------------
 # FONCTIONS POUR LES IMAGES DES CARTES
 # --------------------------------------------------
 
-
-"""
-Rafik utilise :
-
-As
-valet
-dame
-roi
-
-Mais Timothée a appelé les fichiers :
-
-A
-J
-Q
-K
-
-Cette fonction permet donc de faire la traduction.
-"""
-
-
 def convertir_valeur_image(valeur):
 
     if valeur == "As":
-
         return "A"
 
-
     elif valeur == "valet":
-
         return "J"
 
-
     elif valeur == "dame":
-
         return "Q"
 
-
     elif valeur == "roi":
-
         return "K"
 
-
     else:
-
         return valeur
-
-
-
-"""
-Même principe pour les symboles.
-
-Par exemple Rafik utilise "Trèfle"
-mais le fichier de Timothée s'appelle "trefle".
-"""
 
 
 def convertir_symbole_image(symbole):
 
     symbole = symbole.strip().lower()
 
-
     if symbole == "trèfle":
-
         return "trefle"
 
-
     else:
-
         return symbole
 
 
-
-# On garde en mémoire les images déjà chargées
+# Dictionnaire permettant de ne pas recharger
+# plusieurs fois la même image.
 
 images_cartes = {}
-
 
 
 def charger_image_carte(carte):
@@ -317,7 +242,6 @@ def charger_image_carte(carte):
         carte[1]
     )
 
-
     nom_image = (
         valeur
         + "_"
@@ -325,23 +249,13 @@ def charger_image_carte(carte):
         + ".png"
     )
 
-
-    # Si l'image a déjà été chargée,
-    # on ne la recharge pas une deuxième fois
-
     if nom_image in images_cartes:
 
         return images_cartes[nom_image]
 
-
-    # Localisation du dossier dans lequel se trouve main.py
-
     dossier = os.path.dirname(
         os.path.abspath(__file__)
     )
-
-
-    # Création du chemin vers l'image
 
     chemin = os.path.join(
         dossier,
@@ -349,29 +263,18 @@ def charger_image_carte(carte):
         nom_image
     )
 
-
-    # Charger l'image
-
     image = pygame.image.load(
         chemin
     ).convert_alpha()
-
-
-    # Redimensionner la carte
 
     image = pygame.transform.scale(
         image,
         (90, 126)
     )
 
-
-    # Garder l'image en mémoire
-
     images_cartes[nom_image] = image
 
-
     return image
-
 
 
 def afficher_carte(carte, x, y):
@@ -380,21 +283,19 @@ def afficher_carte(carte, x, y):
         carte
     )
 
-
     fenetre.blit(
         image,
         (x, y)
     )
 
 
-
-# Charger le dos d'une carte
-
+# --------------------------------------------------
+# DOS DE LA CARTE
+# --------------------------------------------------
 
 dossier = os.path.dirname(
     os.path.abspath(__file__)
 )
-
 
 chemin_dos = os.path.join(
     dossier,
@@ -402,17 +303,14 @@ chemin_dos = os.path.join(
     "dos.png"
 )
 
-
 image_dos = pygame.image.load(
     chemin_dos
 ).convert_alpha()
-
 
 image_dos = pygame.transform.scale(
     image_dos,
     (90, 126)
 )
-
 
 
 def afficher_dos_carte(x, y):
@@ -423,11 +321,9 @@ def afficher_dos_carte(x, y):
     )
 
 
-
 # --------------------------------------------------
 # ZONES DU JEU
 # --------------------------------------------------
-
 
 zone_croupier = pygame.Rect(
     100,
@@ -436,14 +332,12 @@ zone_croupier = pygame.Rect(
     180
 )
 
-
 zone_joueur = pygame.Rect(
     100,
     320,
     800,
     180
 )
-
 
 zone_info = pygame.Rect(
     200,
@@ -453,11 +347,9 @@ zone_info = pygame.Rect(
 )
 
 
-
 # --------------------------------------------------
 # BOUTONS
 # --------------------------------------------------
-
 
 bouton_distribuer = pygame.Rect(
     70,
@@ -466,14 +358,12 @@ bouton_distribuer = pygame.Rect(
     50
 )
 
-
 bouton_tirer = pygame.Rect(
     300,
     590,
     150,
     50
 )
-
 
 bouton_rester = pygame.Rect(
     550,
@@ -483,54 +373,50 @@ bouton_rester = pygame.Rect(
 )
 
 
-
 # --------------------------------------------------
 # VARIABLES DE LA PARTIE
 # --------------------------------------------------
 
-
 paquet = []
-
 
 main_joueur = []
 
-
 main_croupier = []
-
 
 partie_en_cours = False
 
-
 croupier_visible = False
 
+message_info = (
+    "Appuyez sur D ou DISTRIBUER pour commencer"
+)
 
-message_info = "Appuyez sur D ou DISTRIBUER pour commencer"
+# Le joueur commence avec 500 jetons
 
+jetons = 500
+
+# Mise actuelle
+
+mise = 100
 
 
 # --------------------------------------------------
 # BOUCLE PRINCIPALE
 # --------------------------------------------------
 
-
 jeu_en_cours = True
-
 
 
 while jeu_en_cours:
 
-
     action = None
-
 
 
     # --------------------------------------------------
     # GESTION DES ÉVÉNEMENTS
     # --------------------------------------------------
 
-
     for evenement in pygame.event.get():
-
 
         # Fermer la fenêtre
 
@@ -539,38 +425,30 @@ while jeu_en_cours:
             jeu_en_cours = False
 
 
-
+        # --------------------------------------------------
         # CLAVIER
+        # --------------------------------------------------
 
         if evenement.type == pygame.KEYDOWN:
-
-
-            # D = Distribuer
 
             if evenement.key == pygame.K_d:
 
                 action = "distribuer"
 
-
-            # T = Tirer
-
             elif evenement.key == pygame.K_t:
 
                 action = "tirer"
-
-
-            # R = Rester
 
             elif evenement.key == pygame.K_r:
 
                 action = "rester"
 
 
-
+        # --------------------------------------------------
         # SOURIS
+        # --------------------------------------------------
 
         if evenement.type == pygame.MOUSEBUTTONDOWN:
-
 
             if bouton_distribuer.collidepoint(
                 evenement.pos
@@ -578,13 +456,11 @@ while jeu_en_cours:
 
                 action = "distribuer"
 
-
             elif bouton_tirer.collidepoint(
                 evenement.pos
             ):
 
                 action = "tirer"
-
 
             elif bouton_rester.collidepoint(
                 evenement.pos
@@ -593,122 +469,136 @@ while jeu_en_cours:
                 action = "rester"
 
 
-
     # --------------------------------------------------
     # DISTRIBUER / NOUVELLE PARTIE
     # --------------------------------------------------
 
-
     if action == "distribuer":
 
+        # On vérifie d'abord si le joueur
+        # possède encore assez de jetons.
 
-        # Création d'un nouveau paquet de 52 cartes
+        if not peut_jouer(jetons):
 
-        paquet = creer_paquet()
-
-
-        # Les mains sont remises à zéro
-
-        main_joueur = []
-
-        main_croupier = []
-
-
-        # Deux cartes pour le joueur
-
-        main_joueur.append(
-            paquet.pop()
-        )
-
-
-        main_joueur.append(
-            paquet.pop()
-        )
-
-
-        # Deux cartes pour le croupier
-
-        main_croupier.append(
-            paquet.pop()
-        )
-
-
-        main_croupier.append(
-            paquet.pop()
-        )
-
-
-        partie_en_cours = True
-
-
-        # La deuxième carte du croupier est cachée
-
-        croupier_visible = False
-
-
-        message_info = (
-            "À vous : T = tirer une carte | R = rester"
-        )
-
-
-
-        # Calcul des scores
-
-        score_joueur = calculer_score(
-            main_joueur
-        )
-
-
-        score_croupier = calculer_score(
-            main_croupier
-        )
-
-
-
-        # Vérification d'un 21 dès la distribution
-
-        if score_joueur == 21 or score_croupier == 21:
-
-
-            croupier_visible = True
-
-
-            partie_en_cours = False
-
-
-            message_info = determiner_gagnant(
-                score_joueur,
-                score_croupier
+            message_info = (
+                "Vous avez perdu ! "
+                "Vous n'avez plus assez de jetons pour jouer."
             )
 
+        # On évite aussi de recommencer une nouvelle
+        # manche au milieu d'une partie.
+
+        elif partie_en_cours:
+
+            message_info = (
+                "Terminez d'abord la partie en cours."
+            )
+
+        else:
+
+            # Nouveau paquet
+
+            paquet = creer_paquet()
+
+            # Réinitialiser les mains
+
+            main_joueur = []
+            main_croupier = []
+
+
+            # Deux cartes pour le joueur
+
+            main_joueur.append(
+                paquet.pop()
+            )
+
+            main_joueur.append(
+                paquet.pop()
+            )
+
+
+            # Deux cartes pour le croupier
+
+            main_croupier.append(
+                paquet.pop()
+            )
+
+            main_croupier.append(
+                paquet.pop()
+            )
+
+
+            partie_en_cours = True
+
+            croupier_visible = False
+
+            message_info = (
+                "À vous : T = tirer une carte | R = rester"
+            )
+
+
+            # Calcul des scores
+
+            score_joueur = calculer_score(
+                main_joueur
+            )
+
+            score_croupier = calculer_score(
+                main_croupier
+            )
+
+
+            # Vérification d'un 21 dès la distribution
+
+            if (
+                score_joueur == 21
+                or score_croupier == 21
+            ):
+
+                croupier_visible = True
+
+                partie_en_cours = False
+
+                resultat, message_info = determiner_gagnant(
+                    score_joueur,
+                    score_croupier
+                )
+
+                jetons = mettre_a_jour_jetons(
+                    jetons,
+                    mise,
+                    resultat
+                )
+
+                if partie_terminee(jetons):
+
+                    message_info = (
+                        "Vous avez perdu ! "
+                        "Vous n'avez plus assez de jetons pour continuer."
+                    )
 
 
     # --------------------------------------------------
     # TIRER
     # --------------------------------------------------
 
-
     elif action == "tirer" and partie_en_cours:
 
-
-        # On prend une carte du paquet
+        # Prendre une carte dans le paquet
 
         nouvelle_carte = paquet.pop()
 
-
-        # On ajoute cette carte à la main du joueur
+        # L'ajouter à la main du joueur
 
         main_joueur.append(
             nouvelle_carte
         )
-
 
         # Nouveau score
 
         score_joueur = calculer_score(
             main_joueur
         )
-
 
         message_info = (
             "Vous avez tiré : "
@@ -718,53 +608,60 @@ while jeu_en_cours:
         )
 
 
-
-        # Si le joueur dépasse 21
+        # --------------------------------------------------
+        # JOUEUR DÉPASSE 21
+        # --------------------------------------------------
 
         if score_joueur > 21:
 
-
             croupier_visible = True
 
-
             partie_en_cours = False
-
 
             score_croupier = calculer_score(
                 main_croupier
             )
 
-
-            message_info = determiner_gagnant(
+            resultat, message_info = determiner_gagnant(
                 score_joueur,
                 score_croupier
             )
 
+            jetons = mettre_a_jour_jetons(
+                jetons,
+                mise,
+                resultat
+            )
+
+            if partie_terminee(jetons):
+
+                message_info = (
+                    "Vous avez perdu ! "
+                    "Vous n'avez plus assez de jetons pour continuer."
+                )
 
 
-        # Si le joueur arrive exactement à 21
+        # --------------------------------------------------
+        # JOUEUR A 21
+        # --------------------------------------------------
 
         elif score_joueur == 21:
 
-
             message_info = (
-                "Vous avez 21 ! Appuyez sur R pour rester."
+                "Vous avez 21 ! "
+                "Appuyez sur R pour rester."
             )
-
 
 
     # --------------------------------------------------
     # RESTER
     # --------------------------------------------------
 
-
     elif action == "rester" and partie_en_cours:
 
-
-        # On révèle les cartes du croupier
+        # Révéler les cartes du croupier
 
         croupier_visible = True
-
 
 
         # Le croupier tire tant qu'il a moins de 17
@@ -773,49 +670,66 @@ while jeu_en_cours:
             main_croupier
         ) < 17:
 
-
             main_croupier.append(
                 paquet.pop()
             )
 
 
+        # Calcul final des scores
 
         score_joueur = calculer_score(
             main_joueur
         )
-
 
         score_croupier = calculer_score(
             main_croupier
         )
 
 
+        # Déterminer le résultat
 
-        message_info = determiner_gagnant(
+        resultat, message_info = determiner_gagnant(
             score_joueur,
             score_croupier
         )
 
 
+        # Mettre à jour les jetons
+
+        jetons = mettre_a_jour_jetons(
+            jetons,
+            mise,
+            resultat
+        )
+
+
+        # La manche est terminée
+
         partie_en_cours = False
 
+
+        # Vérifier s'il reste assez de jetons
+
+        if partie_terminee(jetons):
+
+            message_info = (
+                "Vous avez perdu ! "
+                "Vous n'avez plus assez de jetons pour continuer."
+            )
 
 
     # --------------------------------------------------
     # FOND
     # --------------------------------------------------
 
-
     fenetre.fill(
         VERT
     )
 
 
-
     # --------------------------------------------------
     # TITRE
     # --------------------------------------------------
-
 
     titre = police_titre.render(
         "BLACKJACK",
@@ -823,18 +737,31 @@ while jeu_en_cours:
         BLANC
     )
 
-
     fenetre.blit(
         titre,
         (400, 20)
     )
 
 
+    # --------------------------------------------------
+    # AFFICHAGE DES JETONS
+    # --------------------------------------------------
+
+    texte_jetons = police_texte.render(
+        "Jetons : " + str(jetons),
+        True,
+        BLANC
+    )
+
+    fenetre.blit(
+        texte_jetons,
+        (800, 20)
+    )
+
 
     # --------------------------------------------------
     # ZONE CROUPIER
     # --------------------------------------------------
-
 
     pygame.draw.rect(
         fenetre,
@@ -843,13 +770,11 @@ while jeu_en_cours:
         3
     )
 
-
     texte_croupier = police_texte.render(
         "Cartes du croupier",
         True,
         BLANC
     )
-
 
     fenetre.blit(
         texte_croupier,
@@ -857,41 +782,30 @@ while jeu_en_cours:
     )
 
 
-
     # --------------------------------------------------
     # AFFICHAGE DES CARTES DU CROUPIER
     # --------------------------------------------------
-
 
     for i, carte in enumerate(
         main_croupier
     ):
 
-
-        # Chaque nouvelle carte est placée
-        # un peu plus à droite
-
         x = 150 + i * 105
-
 
         y = 125
 
 
-
-        # La deuxième carte reste cachée
-        # tant que le joueur joue
+        # Deuxième carte cachée pendant
+        # le tour du joueur
 
         if i == 1 and not croupier_visible:
-
 
             afficher_dos_carte(
                 x,
                 y
             )
 
-
         else:
-
 
             afficher_carte(
                 carte,
@@ -900,22 +814,17 @@ while jeu_en_cours:
             )
 
 
-
     # --------------------------------------------------
     # SCORE DU CROUPIER
     # --------------------------------------------------
 
-
     if len(main_croupier) > 0:
 
-
         if croupier_visible:
-
 
             score_croupier = calculer_score(
                 main_croupier
             )
-
 
             texte_score_croupier = police_texte.render(
                 "Score : " + str(score_croupier),
@@ -923,9 +832,7 @@ while jeu_en_cours:
                 BLANC
             )
 
-
         else:
-
 
             texte_score_croupier = police_texte.render(
                 "Score : ?",
@@ -933,18 +840,15 @@ while jeu_en_cours:
                 BLANC
             )
 
-
         fenetre.blit(
             texte_score_croupier,
             (750, 95)
         )
 
 
-
     # --------------------------------------------------
     # ZONE JOUEUR
     # --------------------------------------------------
-
 
     pygame.draw.rect(
         fenetre,
@@ -953,13 +857,11 @@ while jeu_en_cours:
         3
     )
 
-
     texte_joueur = police_texte.render(
         "Cartes du joueur",
         True,
         BLANC
     )
-
 
     fenetre.blit(
         texte_joueur,
@@ -967,22 +869,17 @@ while jeu_en_cours:
     )
 
 
-
     # --------------------------------------------------
     # AFFICHAGE DES CARTES DU JOUEUR
     # --------------------------------------------------
-
 
     for i, carte in enumerate(
         main_joueur
     ):
 
-
         x = 150 + i * 105
 
-
         y = 365
-
 
         afficher_carte(
             carte,
@@ -991,19 +888,15 @@ while jeu_en_cours:
         )
 
 
-
     # --------------------------------------------------
     # SCORE DU JOUEUR
     # --------------------------------------------------
 
-
     if len(main_joueur) > 0:
-
 
         score_joueur = calculer_score(
             main_joueur
         )
-
 
         texte_score_joueur = police_texte.render(
             "Score : " + str(score_joueur),
@@ -1011,18 +904,15 @@ while jeu_en_cours:
             BLANC
         )
 
-
         fenetre.blit(
             texte_score_joueur,
             (750, 335)
         )
 
 
-
     # --------------------------------------------------
     # INFORMATIONS DE LA PARTIE
     # --------------------------------------------------
-
 
     pygame.draw.rect(
         fenetre,
@@ -1030,18 +920,15 @@ while jeu_en_cours:
         zone_info
     )
 
-
     texte_infos = police_info.render(
         message_info,
         True,
         BLANC
     )
 
-
     position_info = texte_infos.get_rect(
         center=zone_info.center
     )
-
 
     fenetre.blit(
         texte_infos,
@@ -1049,11 +936,9 @@ while jeu_en_cours:
     )
 
 
-
     # --------------------------------------------------
     # BOUTON DISTRIBUER
     # --------------------------------------------------
-
 
     pygame.draw.rect(
         fenetre,
@@ -1061,13 +946,11 @@ while jeu_en_cours:
         bouton_distribuer
     )
 
-
     texte_distribuer = police_texte.render(
         "DISTRIBUER",
         True,
         NOIR
     )
-
 
     fenetre.blit(
         texte_distribuer,
@@ -1077,11 +960,9 @@ while jeu_en_cours:
     )
 
 
-
     # --------------------------------------------------
     # BOUTON TIRER
     # --------------------------------------------------
-
 
     pygame.draw.rect(
         fenetre,
@@ -1089,13 +970,11 @@ while jeu_en_cours:
         bouton_tirer
     )
 
-
     texte_tirer = police_texte.render(
         "TIRER",
         True,
         NOIR
     )
-
 
     fenetre.blit(
         texte_tirer,
@@ -1105,11 +984,9 @@ while jeu_en_cours:
     )
 
 
-
     # --------------------------------------------------
     # BOUTON RESTER
     # --------------------------------------------------
-
 
     pygame.draw.rect(
         fenetre,
@@ -1117,13 +994,11 @@ while jeu_en_cours:
         bouton_rester
     )
 
-
     texte_rester = police_texte.render(
         "RESTER",
         True,
         NOIR
     )
-
 
     fenetre.blit(
         texte_rester,
@@ -1133,16 +1008,15 @@ while jeu_en_cours:
     )
 
 
-
     # --------------------------------------------------
     # ACTUALISER L'ÉCRAN
     # --------------------------------------------------
 
-
     pygame.display.update()
 
 
-
+# --------------------------------------------------
 # FERMER PYGAME
+# --------------------------------------------------
 
 pygame.quit()
