@@ -7,6 +7,9 @@ from jetons import peut_jouer
 from jetons import mettre_a_jour_jetons
 from jetons import partie_terminee
 
+from split import split_possible
+from split import effectuer_split
+
 
 # --------------------------------------------------
 # INITIALISATION DE PYGAME
@@ -17,8 +20,13 @@ pygame.init()
 LARGEUR = 1000
 HAUTEUR = 650
 
-fenetre = pygame.display.set_mode((LARGEUR, HAUTEUR))
-pygame.display.set_caption("Table de Blackjack")
+fenetre = pygame.display.set_mode(
+    (LARGEUR, HAUTEUR)
+)
+
+pygame.display.set_caption(
+    "Table de Blackjack"
+)
 
 
 # --------------------------------------------------
@@ -36,9 +44,20 @@ GRIS = (200, 200, 200)
 # POLICES
 # --------------------------------------------------
 
-police_titre = pygame.font.Font(None, 40)
-police_texte = pygame.font.Font(None, 30)
-police_info = pygame.font.Font(None, 22)
+police_titre = pygame.font.Font(
+    None,
+    40
+)
+
+police_texte = pygame.font.Font(
+    None,
+    30
+)
+
+police_info = pygame.font.Font(
+    None,
+    22
+)
 
 
 # --------------------------------------------------
@@ -54,19 +73,14 @@ def calculer_score(main):
 
         valeur = carte[2]
 
-        # Si c'est un As
         if isinstance(valeur, list):
 
-            # On commence par considérer l'As comme 11
             total += 11
             nombre_as += 1
 
         else:
 
             total += valeur
-
-    # Si on dépasse 21,
-    # un As passe de 11 à 1
 
     while total > 21 and nombre_as > 0:
 
@@ -76,7 +90,10 @@ def calculer_score(main):
     return total
 
 
-def determiner_gagnant(score_joueur, score_croupier):
+def determiner_gagnant(
+    score_joueur,
+    score_croupier
+):
 
     if score_joueur > 21:
 
@@ -115,24 +132,116 @@ def determiner_gagnant(score_joueur, score_croupier):
 
 
 # --------------------------------------------------
-# FONCTIONS POUR LES IMAGES DES CARTES
+# TERMINER UNE MANCHE
+# --------------------------------------------------
+
+def terminer_manche(
+    paquet,
+    main_croupier,
+    mains,
+    mises,
+    jetons
+):
+
+    # Si au moins une main n'a pas dépassé 21,
+    # le croupier doit jouer.
+
+    joueur_encore_en_jeu = False
+
+    for main in mains:
+
+        if calculer_score(main) <= 21:
+
+            joueur_encore_en_jeu = True
+
+
+    if joueur_encore_en_jeu:
+
+        while calculer_score(
+            main_croupier
+        ) < 17:
+
+            main_croupier.append(
+                paquet.pop()
+            )
+
+
+    score_croupier = calculer_score(
+        main_croupier
+    )
+
+
+    messages = []
+
+
+    # On calcule le résultat de chaque main
+
+    for i in range(len(mains)):
+
+        score_joueur = calculer_score(
+            mains[i]
+        )
+
+        resultat, message = determiner_gagnant(
+            score_joueur,
+            score_croupier
+        )
+
+        jetons = mettre_a_jour_jetons(
+            jetons,
+            mises[i],
+            resultat
+        )
+
+
+        if len(mains) == 1:
+
+            messages.append(
+                message
+            )
+
+        else:
+
+            messages.append(
+                "Main "
+                + str(i + 1)
+                + " : "
+                + message
+            )
+
+
+    message_final = " | ".join(
+        messages
+    )
+
+
+    return jetons, message_final
+
+
+# --------------------------------------------------
+# FONCTIONS POUR LES IMAGES
 # --------------------------------------------------
 
 def convertir_valeur_image(valeur):
 
     if valeur == "As":
+
         return "A"
 
     elif valeur == "valet":
+
         return "J"
 
     elif valeur == "dame":
+
         return "Q"
 
     elif valeur == "roi":
+
         return "K"
 
     else:
+
         return valeur
 
 
@@ -141,9 +250,11 @@ def convertir_symbole_image(symbole):
     symbole = symbole.strip().lower()
 
     if symbole == "trèfle":
+
         return "trefle"
 
     else:
+
         return symbole
 
 
@@ -167,16 +278,18 @@ def charger_image_carte(carte):
         + ".png"
     )
 
-    # Si l'image a déjà été chargée,
-    # on évite de la recharger
 
     if nom_image in images_cartes:
 
-        return images_cartes[nom_image]
+        return images_cartes[
+            nom_image
+        ]
+
 
     dossier = os.path.dirname(
         os.path.abspath(__file__)
     )
+
 
     chemin = os.path.join(
         dossier,
@@ -184,21 +297,31 @@ def charger_image_carte(carte):
         nom_image
     )
 
+
     image = pygame.image.load(
         chemin
     ).convert_alpha()
+
 
     image = pygame.transform.scale(
         image,
         (90, 126)
     )
 
-    images_cartes[nom_image] = image
+
+    images_cartes[
+        nom_image
+    ] = image
+
 
     return image
 
 
-def afficher_carte(carte, x, y):
+def afficher_carte(
+    carte,
+    x,
+    y
+):
 
     image = charger_image_carte(
         carte
@@ -211,7 +334,7 @@ def afficher_carte(carte, x, y):
 
 
 # --------------------------------------------------
-# DOS DE LA CARTE
+# DOS DE CARTE
 # --------------------------------------------------
 
 dossier = os.path.dirname(
@@ -234,7 +357,10 @@ image_dos = pygame.transform.scale(
 )
 
 
-def afficher_dos_carte(x, y):
+def afficher_dos_carte(
+    x,
+    y
+):
 
     fenetre.blit(
         image_dos,
@@ -261,9 +387,9 @@ zone_joueur = pygame.Rect(
 )
 
 zone_info = pygame.Rect(
-    200,
+    150,
     520,
-    600,
+    700,
     50
 )
 
@@ -273,31 +399,33 @@ zone_info = pygame.Rect(
 # --------------------------------------------------
 
 bouton_distribuer = pygame.Rect(
-    70,
+    40,
     590,
     170,
     50
 )
 
 bouton_tirer = pygame.Rect(
-    300,
+    260,
     590,
     150,
     50
 )
 
 bouton_rester = pygame.Rect(
-    550,
+    470,
     590,
     150,
     50
 )
+
 bouton_split = pygame.Rect(
-    775,
+    680,
     590,
     150,
     50
 )
+
 
 # --------------------------------------------------
 # VARIABLES DE LA PARTIE
@@ -308,23 +436,49 @@ paquet = []
 main_joueur = []
 
 main_croupier = []
-#variable pour le split
+
+
+# En temps normal, cette liste contient
+# seulement main_joueur.
+#
+# Après un split, elle contiendra :
+# [main_1, main_2]
+
 mains_joueur = []
+
+
+# Même principe pour les mises.
+
 mises_joueur = []
+
+
+# Permet de savoir quelle main
+# est actuellement jouée.
+
 main_actuelle = 0
+
+
+# False = pas de split
+# True = le joueur joue deux mains
+
+split_actif = False
+
+
 partie_en_cours = False
 
 croupier_visible = False
+
 
 message_info = (
     "Appuyez sur D ou DISTRIBUER pour commencer"
 )
 
-# Le joueur commence avec 500 jetons
+
+# --------------------------------------------------
+# JETONS
+# --------------------------------------------------
 
 jetons = 500
-
-# Mise actuelle
 
 mise = 100
 
@@ -342,21 +496,17 @@ while jeu_en_cours:
 
 
     # --------------------------------------------------
-    # GESTION DES ÉVÉNEMENTS
+    # ÉVÉNEMENTS
     # --------------------------------------------------
 
     for evenement in pygame.event.get():
-
-        # Fermer la fenêtre
 
         if evenement.type == pygame.QUIT:
 
             jeu_en_cours = False
 
 
-        # --------------------------------------------------
         # CLAVIER
-        # --------------------------------------------------
 
         if evenement.type == pygame.KEYDOWN:
 
@@ -364,20 +514,23 @@ while jeu_en_cours:
 
                 action = "distribuer"
 
+
             elif evenement.key == pygame.K_t:
 
                 action = "tirer"
 
+
             elif evenement.key == pygame.K_r:
 
                 action = "rester"
+
+
             elif evenement.key == pygame.K_s:
 
                 action = "split"
 
-        # --------------------------------------------------
+
         # SOURIS
-        # --------------------------------------------------
 
         if evenement.type == pygame.MOUSEBUTTONDOWN:
 
@@ -387,37 +540,43 @@ while jeu_en_cours:
 
                 action = "distribuer"
 
+
             elif bouton_tirer.collidepoint(
                 evenement.pos
             ):
 
                 action = "tirer"
 
+
             elif bouton_rester.collidepoint(
                 evenement.pos
             ):
 
                 action = "rester"
-            elif bouton_split.collidepoint(evenement.pos):
+
+
+            elif bouton_split.collidepoint(
+                evenement.pos
+            ):
 
                 action = "split"
 
 
     # --------------------------------------------------
-    # DISTRIBUER / NOUVELLE PARTIE
+    # DISTRIBUER
     # --------------------------------------------------
 
     if action == "distribuer":
 
-        # On vérifie si le joueur possède
-        # encore assez de jetons
-
-        if not peut_jouer(jetons):
+        if not peut_jouer(
+            jetons
+        ):
 
             message_info = (
                 "Vous avez perdu ! "
-                "Vous n'avez plus assez de jetons pour jouer."
+                "Vous n'avez plus assez de jetons."
             )
+
 
         elif partie_en_cours:
 
@@ -425,20 +584,18 @@ while jeu_en_cours:
                 "Terminez d'abord la partie en cours."
             )
 
-        else:
 
-            # Cette fonction vient maintenant
-            # directement de cartes.py
+        else:
 
             paquet = creer_paquet()
 
-            # Réinitialiser les mains
 
             main_joueur = []
+
             main_croupier = []
 
 
-            # Deux cartes pour le joueur
+            # Deux cartes joueur
 
             main_joueur.append(
                 paquet.pop()
@@ -449,7 +606,7 @@ while jeu_en_cours:
             )
 
 
-            # Deux cartes pour le croupier
+            # Deux cartes croupier
 
             main_croupier.append(
                 paquet.pop()
@@ -458,18 +615,33 @@ while jeu_en_cours:
             main_croupier.append(
                 paquet.pop()
             )
+
+
+            # Initialement il n'y a
+            # qu'une seule main joueur
+
+            mains_joueur = [
+                main_joueur
+            ]
+
+            mises_joueur = [
+                mise
+            ]
+
+            main_actuelle = 0
+
+            split_actif = False
 
 
             partie_en_cours = True
 
             croupier_visible = False
 
+
             message_info = (
-                "À vous : T = tirer une carte | R = rester"
+                "À vous : T = tirer | R = rester | S = split"
             )
 
-
-            # Calcul des scores
 
             score_joueur = calculer_score(
                 main_joueur
@@ -480,7 +652,7 @@ while jeu_en_cours:
             )
 
 
-            # Vérification d'un 21 dès la distribution
+            # Blackjack dès le départ
 
             if (
                 score_joueur == 21
@@ -491,40 +663,121 @@ while jeu_en_cours:
 
                 partie_en_cours = False
 
-                resultat, message_info = determiner_gagnant(
-                    score_joueur,
-                    score_croupier
+
+                jetons, message_info = terminer_manche(
+                    paquet,
+                    main_croupier,
+                    mains_joueur,
+                    mises_joueur,
+                    jetons
                 )
 
-                jetons = mettre_a_jour_jetons(
-                    jetons,
-                    mise,
-                    resultat
-                )
 
-                if partie_terminee(jetons):
+                if partie_terminee(
+                    jetons
+                ):
 
                     message_info = (
                         "Vous avez perdu ! "
-                        "Vous n'avez plus assez de jetons pour continuer."
+                        "Vous n'avez plus assez de jetons."
                     )
+
+
+    # --------------------------------------------------
+    # SPLIT
+    # --------------------------------------------------
+
+    elif (
+        action == "split"
+        and partie_en_cours
+    ):
+
+        # Un seul split autorisé pour l'instant
+
+        if split_actif:
+
+            message_info = (
+                "Vous avez déjà effectué un split."
+            )
+
+
+        # Vérifier les deux cartes
+
+        elif not split_possible(
+            main_joueur
+        ):
+
+            message_info = (
+                "Split impossible : "
+                "les deux cartes doivent être identiques."
+            )
+
+
+        # Un split représente deux mises de 100.
+        # Il faut donc pouvoir risquer 200 jetons.
+
+        elif jetons < mise * 2:
+
+            message_info = (
+                "Vous n'avez pas assez de jetons "
+                "pour effectuer un split."
+            )
+
+
+        else:
+
+            mains_joueur = effectuer_split(
+                main_joueur,
+                paquet
+            )
+
+
+            mises_joueur = [
+                mise,
+                mise
+            ]
+
+
+            split_actif = True
+
+            main_actuelle = 0
+
+
+            # On commence par jouer
+            # la première main.
+
+            main_joueur = mains_joueur[
+                main_actuelle
+            ]
+
+
+            message_info = (
+                "Split effectué ! "
+                "Vous jouez la main 1."
+            )
 
 
     # --------------------------------------------------
     # TIRER
     # --------------------------------------------------
 
-    elif action == "tirer" and partie_en_cours:
+    elif (
+        action == "tirer"
+        and partie_en_cours
+    ):
 
         nouvelle_carte = paquet.pop()
+
 
         main_joueur.append(
             nouvelle_carte
         )
 
+
         score_joueur = calculer_score(
             main_joueur
         )
+
 
         message_info = (
             "Vous avez tiré : "
@@ -534,38 +787,65 @@ while jeu_en_cours:
         )
 
 
-        # Joueur dépasse 21
+        # ----------------------------------------------
+        # DÉPASSEMENT DE 21
+        # ----------------------------------------------
 
         if score_joueur > 21:
 
-            croupier_visible = True
 
-            partie_en_cours = False
+            # Si on joue la première main du split,
+            # on passe simplement à la deuxième.
 
-            score_croupier = calculer_score(
-                main_croupier
-            )
+            if (
+                split_actif
+                and main_actuelle == 0
+            ):
 
-            resultat, message_info = determiner_gagnant(
-                score_joueur,
-                score_croupier
-            )
+                main_actuelle = 1
 
-            jetons = mettre_a_jour_jetons(
-                jetons,
-                mise,
-                resultat
-            )
+                main_joueur = mains_joueur[
+                    main_actuelle
+                ]
 
-            if partie_terminee(jetons):
 
                 message_info = (
-                    "Vous avez perdu ! "
-                    "Vous n'avez plus assez de jetons pour continuer."
+                    "Main 1 dépasse 21. "
+                    "Vous jouez maintenant la main 2."
                 )
 
 
-        # Joueur a exactement 21
+            else:
+
+                # Toutes les mains ont été jouées.
+
+                croupier_visible = True
+
+                partie_en_cours = False
+
+
+                jetons, message_info = terminer_manche(
+                    paquet,
+                    main_croupier,
+                    mains_joueur,
+                    mises_joueur,
+                    jetons
+                )
+
+
+                if partie_terminee(
+                    jetons
+                ):
+
+                    message_info = (
+                        "Vous avez perdu ! "
+                        "Vous n'avez plus assez de jetons."
+                    )
+
+
+        # ----------------------------------------------
+        # SCORE = 21
+        # ----------------------------------------------
 
         elif score_joueur == 21:
 
@@ -579,53 +859,61 @@ while jeu_en_cours:
     # RESTER
     # --------------------------------------------------
 
-    elif action == "rester" and partie_en_cours:
-
-        croupier_visible = True
-
-
-        # Le croupier tire tant qu'il a moins de 17
-
-        while calculer_score(
-            main_croupier
-        ) < 17:
-
-            main_croupier.append(
-                paquet.pop()
-            )
+    elif (
+        action == "rester"
+        and partie_en_cours
+    ):
 
 
-        score_joueur = calculer_score(
-            main_joueur
-        )
+        # Si nous avons fait un split
+        # et que nous sommes sur Main 1...
 
-        score_croupier = calculer_score(
-            main_croupier
-        )
+        if (
+            split_actif
+            and main_actuelle == 0
+        ):
 
-
-        resultat, message_info = determiner_gagnant(
-            score_joueur,
-            score_croupier
-        )
+            main_actuelle = 1
 
 
-        jetons = mettre_a_jour_jetons(
-            jetons,
-            mise,
-            resultat
-        )
+            main_joueur = mains_joueur[
+                main_actuelle
+            ]
 
-
-        partie_en_cours = False
-
-
-        if partie_terminee(jetons):
 
             message_info = (
-                "Vous avez perdu ! "
-                "Vous n'avez plus assez de jetons pour continuer."
+                "Main 1 terminée. "
+                "Vous jouez maintenant la main 2."
             )
+
+
+        else:
+
+            # Plus aucune main à jouer :
+            # le croupier peut jouer.
+
+            croupier_visible = True
+
+            partie_en_cours = False
+
+
+            jetons, message_info = terminer_manche(
+                paquet,
+                main_croupier,
+                mains_joueur,
+                mises_joueur,
+                jetons
+            )
+
+
+            if partie_terminee(
+                jetons
+            ):
+
+                message_info = (
+                    "Vous avez perdu ! "
+                    "Vous n'avez plus assez de jetons."
+                )
 
 
     # --------------------------------------------------
@@ -654,7 +942,7 @@ while jeu_en_cours:
 
 
     # --------------------------------------------------
-    # AFFICHAGE DES JETONS
+    # JETONS
     # --------------------------------------------------
 
     texte_jetons = police_texte.render(
@@ -680,11 +968,13 @@ while jeu_en_cours:
         3
     )
 
+
     texte_croupier = police_texte.render(
         "Cartes du croupier",
         True,
         BLANC
     )
+
 
     fenetre.blit(
         texte_croupier,
@@ -693,7 +983,7 @@ while jeu_en_cours:
 
 
     # --------------------------------------------------
-    # AFFICHAGE DES CARTES DU CROUPIER
+    # CARTES CROUPIER
     # --------------------------------------------------
 
     for i, carte in enumerate(
@@ -705,7 +995,10 @@ while jeu_en_cours:
         y = 125
 
 
-        if i == 1 and not croupier_visible:
+        if (
+            i == 1
+            and not croupier_visible
+        ):
 
             afficher_dos_carte(
                 x,
@@ -722,10 +1015,12 @@ while jeu_en_cours:
 
 
     # --------------------------------------------------
-    # SCORE DU CROUPIER
+    # SCORE CROUPIER
     # --------------------------------------------------
 
-    if len(main_croupier) > 0:
+    if len(
+        main_croupier
+    ) > 0:
 
         if croupier_visible:
 
@@ -734,7 +1029,8 @@ while jeu_en_cours:
             )
 
             texte_score_croupier = police_texte.render(
-                "Score : " + str(score_croupier),
+                "Score : "
+                + str(score_croupier),
                 True,
                 BLANC
             )
@@ -746,6 +1042,7 @@ while jeu_en_cours:
                 True,
                 BLANC
             )
+
 
         fenetre.blit(
             texte_score_croupier,
@@ -764,11 +1061,27 @@ while jeu_en_cours:
         3
     )
 
+
+    if split_actif:
+
+        nom_main = (
+            "Cartes du joueur - Main "
+            + str(main_actuelle + 1)
+        )
+
+    else:
+
+        nom_main = (
+            "Cartes du joueur"
+        )
+
+
     texte_joueur = police_texte.render(
-        "Cartes du joueur",
+        nom_main,
         True,
         BLANC
     )
+
 
     fenetre.blit(
         texte_joueur,
@@ -777,7 +1090,7 @@ while jeu_en_cours:
 
 
     # --------------------------------------------------
-    # AFFICHAGE DES CARTES DU JOUEUR
+    # CARTES JOUEUR
     # --------------------------------------------------
 
     for i, carte in enumerate(
@@ -788,6 +1101,7 @@ while jeu_en_cours:
 
         y = 365
 
+
         afficher_carte(
             carte,
             x,
@@ -796,20 +1110,25 @@ while jeu_en_cours:
 
 
     # --------------------------------------------------
-    # SCORE DU JOUEUR
+    # SCORE JOUEUR
     # --------------------------------------------------
 
-    if len(main_joueur) > 0:
+    if len(
+        main_joueur
+    ) > 0:
 
         score_joueur = calculer_score(
             main_joueur
         )
 
+
         texte_score_joueur = police_texte.render(
-            "Score : " + str(score_joueur),
+            "Score : "
+            + str(score_joueur),
             True,
             BLANC
         )
+
 
         fenetre.blit(
             texte_score_joueur,
@@ -818,7 +1137,7 @@ while jeu_en_cours:
 
 
     # --------------------------------------------------
-    # INFORMATIONS DE LA PARTIE
+    # INFORMATIONS
     # --------------------------------------------------
 
     pygame.draw.rect(
@@ -827,15 +1146,18 @@ while jeu_en_cours:
         zone_info
     )
 
+
     texte_infos = police_info.render(
         message_info,
         True,
         BLANC
     )
 
+
     position_info = texte_infos.get_rect(
         center=zone_info.center
     )
+
 
     fenetre.blit(
         texte_infos,
@@ -853,11 +1175,13 @@ while jeu_en_cours:
         bouton_distribuer
     )
 
+
     texte_distribuer = police_texte.render(
         "DISTRIBUER",
         True,
         NOIR
     )
+
 
     fenetre.blit(
         texte_distribuer,
@@ -877,11 +1201,13 @@ while jeu_en_cours:
         bouton_tirer
     )
 
+
     texte_tirer = police_texte.render(
         "TIRER",
         True,
         NOIR
     )
+
 
     fenetre.blit(
         texte_tirer,
@@ -901,11 +1227,13 @@ while jeu_en_cours:
         bouton_rester
     )
 
+
     texte_rester = police_texte.render(
         "RESTER",
         True,
         NOIR
     )
+
 
     fenetre.blit(
         texte_rester,
@@ -913,26 +1241,33 @@ while jeu_en_cours:
             center=bouton_rester.center
         )
     )
-# BOUTON SPLIT
 
-pygame.draw.rect(
-    fenetre,
-    GRIS,
-    bouton_split
-)
 
-texte_split = police_texte.render(
-    "SPLIT",
-    True,
-    NOIR
-)
+    # --------------------------------------------------
+    # BOUTON SPLIT
+    # --------------------------------------------------
 
-fenetre.blit(
-    texte_split,
-    texte_split.get_rect(
-        center=bouton_split.center
+    pygame.draw.rect(
+        fenetre,
+        GRIS,
+        bouton_split
     )
-)
+
+
+    texte_split = police_texte.render(
+        "SPLIT",
+        True,
+        NOIR
+    )
+
+
+    fenetre.blit(
+        texte_split,
+        texte_split.get_rect(
+            center=bouton_split.center
+        )
+    )
+
 
     # --------------------------------------------------
     # ACTUALISER L'ÉCRAN
