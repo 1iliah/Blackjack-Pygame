@@ -2,7 +2,7 @@ import pygame
 
 
 # --------------------------------------------------
-# DIMENSIONS DE LA FENÊTRE
+# DIMENSIONS
 # --------------------------------------------------
 
 LARGEUR = 1000
@@ -14,9 +14,11 @@ HAUTEUR = 650
 # --------------------------------------------------
 
 VERT = (0, 120, 0)
+
 VERT_FONCE = (0, 80, 0)
 
 BLANC = (255, 255, 255)
+
 NOIR = (0, 0, 0)
 
 GRIS = (200, 200, 200)
@@ -33,12 +35,14 @@ zone_croupier = pygame.Rect(
     180
 )
 
+
 zone_joueur = pygame.Rect(
     100,
     320,
     800,
     180
 )
+
 
 zone_info = pygame.Rect(
     150,
@@ -59,6 +63,7 @@ bouton_distribuer = pygame.Rect(
     50
 )
 
+
 bouton_tirer = pygame.Rect(
     260,
     590,
@@ -66,12 +71,14 @@ bouton_tirer = pygame.Rect(
     50
 )
 
+
 bouton_rester = pygame.Rect(
     470,
     590,
     150,
     50
 )
+
 
 bouton_split = pygame.Rect(
     680,
@@ -92,15 +99,18 @@ def creer_polices():
         40
     )
 
+
     police_texte = pygame.font.Font(
         None,
         30
     )
 
+
     police_info = pygame.font.Font(
         None,
         22
     )
+
 
     return (
         police_titre,
@@ -110,7 +120,7 @@ def creer_polices():
 
 
 # --------------------------------------------------
-# ACTIONS DU CLAVIER
+# ACTION CLAVIER
 # --------------------------------------------------
 
 def obtenir_action_clavier(touche):
@@ -119,17 +129,21 @@ def obtenir_action_clavier(touche):
 
         return "distribuer"
 
+
     elif touche == pygame.K_t:
 
         return "tirer"
+
 
     elif touche == pygame.K_r:
 
         return "rester"
 
+
     elif touche == pygame.K_s:
 
         return "split"
+
 
     else:
 
@@ -137,7 +151,7 @@ def obtenir_action_clavier(touche):
 
 
 # --------------------------------------------------
-# ACTIONS DE LA SOURIS
+# ACTION SOURIS
 # --------------------------------------------------
 
 def obtenir_action_souris(position):
@@ -218,6 +232,7 @@ def dessiner_interface(
     police_texte,
     police_info,
     jetons,
+    mise,
     message_info,
     nom_main
 ):
@@ -244,24 +259,43 @@ def dessiner_interface(
 
     fenetre.blit(
         titre,
-        (400, 20)
+        (420, 20)
     )
 
 
     # --------------------------------------------------
-    # JETONS
+    # SOLDE
     # --------------------------------------------------
 
-    texte_jetons = police_texte.render(
-        "Jetons : " + str(jetons),
+    texte_solde = police_info.render(
+        "Solde : "
+        + str(jetons),
         True,
         BLANC
     )
 
 
     fenetre.blit(
-        texte_jetons,
-        (800, 20)
+        texte_solde,
+        (830, 15)
+    )
+
+
+    # --------------------------------------------------
+    # MISE
+    # --------------------------------------------------
+
+    texte_mise = police_info.render(
+        "Mise : "
+        + str(mise),
+        True,
+        BLANC
+    )
+
+
+    fenetre.blit(
+        texte_mise,
+        (830, 40)
     )
 
 
